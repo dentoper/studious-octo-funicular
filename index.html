@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный Свод Правил Сервера</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals with Earthy Accents. Background: Stone-50 (#fafaf9). Text: Stone-800. Accents: Amber-600. -->
+    <!-- Application Structure Plan: 
+        1. Header: Branding and Global Search.
+        2. Intro Section: Welcome message and core principle.
+        3. Category Navigation: Interactive buttons for the 5 main sections of the report.
+        4. Active Section Viewer: Dynamic area showing rules with accordion details.
+        5. Punishment Hub: Interactive tool to simulate outcomes for specific violations.
+        
+        Why this structure: Removing the analytics dashboard simplifies the UI, allowing users to jump directly to the rules they need without visual distraction, prioritizing text-based exploration.
+    -->
+    <!-- Visualization & Content Choices:
+        1. Interactive Rule List (Vanilla JS): Searchable and filterable elements with expandable details. Goal: Organize.
+        2. Punishment Estimator (JS Logic): Interactive selector for common violations. Goal: Engage/Clarify.
+        3. Scenarios (HTML/JS): Integrated within the rules for contextual clarity.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-[#fafaf9] text-stone-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl">📜</span>
+                <h1 class="text-xl font-bold text-stone-900 tracking-tight">Серверный Кодекс</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" id="globalSearch" placeholder="Поиск по всем правилам..." class="w-48 sm:w-64 bg-stone-100 border border-stone-300 rounded-full py-1.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all">
+                    <span class="absolute right-3 top-1.5 text-stone-400 text-sm">🔍</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-12">
+
+        <!-- Intro Section -->
+        <section class="text-center max-w-3xl mx-auto space-y-4 fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold text-stone-900">Правила и Порядок</h2>
+            <p class="text-lg text-stone-600 leading-relaxed">
+                Наш сервер — это сообщество, построенное на уважении и здравом смысле. 
+                Используйте этот справочник, чтобы изучить свои права и обязанности.
+                <span class="font-semibold block mt-2 text-amber-700">Незнание правил не освобождает от ответственности.</span>
+            </p>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <section class="fade-in">
+            <div class="flex flex-wrap justify-center gap-2 md:gap-4" id="categoryNav">
+                <!-- Buttons injected by JS -->
+            </div>
+        </section>
+
+        <!-- Active Category Content -->
+        <section id="rulesContainer" class="bg-white rounded-3xl shadow-lg border border-stone-100 overflow-hidden min-h-[400px] transition-all duration-300">
+            <!-- Content Injected by JS -->
+            <div class="p-8 md:p-12 text-center text-stone-500">
+                <p class="text-xl">Загрузка правил...</p>
+            </div>
+        </section>
+
+        <!-- Punishment Simulator Tool -->
+        <section class="bg-stone-900 text-stone-50 rounded-3xl p-8 md:p-12 shadow-xl fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-4xl">🚔</span>
+                        <h2 class="text-3xl font-bold">Система Наказаний</h2>
+                    </div>
+                    <p class="text-stone-300 text-lg leading-relaxed">
+                        Администрация имеет право выбирать меру наказания. В нашем калькуляторе вы можете увидеть примерные последствия за различные нарушения.
+                    </p>
+                    <div class="bg-stone-800/50 p-4 rounded-xl border border-stone-700">
+                        <h4 class="font-semibold text-amber-400 mb-2">📜 Порядок обжалования</h4>
+                        <p class="text-sm text-stone-400">Не согласны с наказанием? Откройте тикет в Discord. Подготовьте доказательства своей невиновности.</p>
+                    </div>
+                </div>
+
+                <div class="bg-stone-800 p-6 rounded-2xl border border-stone-700 space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-stone-400 mb-2">Выберите нарушение для справки</label>
+                        <select id="violationSelect" class="w-full bg-stone-900 border border-stone-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                            <option value="none">-- Выберите нарушение --</option>
+                            <option value="grief">Гриферство / Порча ландшафта</option>
+                            <option value="theft">Кража вещей / Лутбоксов</option>
+                            <option value="cheats">Использование Читов / X-Ray</option>
+                            <option value="pvp">Убийство без согласия / Ловушки</option>
+                            <option value="spam">Флуд / Капс / Спам</option>
+                            <option value="ads">Реклама сторонних проектов</option>
+                        </select>
+                    </div>
+                    
+                    <div id="resultBox" class="hidden space-y-4 p-4 rounded-xl transition-all duration-300 bg-stone-900/50">
+                        <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                            <span class="text-stone-400">Меры наказания:</span>
+                            <span id="punishmentType" class="font-bold text-xl text-white">---</span>
+                        </div>
+                        <p id="punishmentDesc" class="text-sm text-stone-300 italic">---</p>
+                        <div class="w-full bg-stone-900 rounded-full h-2 mt-2">
+                            <div id="severityBar" class="h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-stone-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-stone-400 text-sm">
+            <p>&copy; 2026 Игровой Сервер. Правила обновлены: 02.02.2026.</p>
+            <p class="mt-2">Уважайте других игроков и играйте честно.</p>
+        </div>
+    </footer>
+
+    <script>
+        const categories = [
+            {
+                id: 'general',
+                title: '1. Общие положения',
+                icon: '⚖️',
+                intro: 'Фундамент нашего сообщества. Здесь описаны базовые принципы ответственности за аккаунт и взаимодействия с персоналом.',
+                rules: [
+                    { code: '1.1', title: 'Согласие с правилами', desc: 'Вход на сервер автоматически означает полное согласие с данными правилами.', clarifications: [] },
+                    { code: '1.2', title: 'Ответственность', desc: 'Владелец аккаунта отвечает за все действия. Оправдания про "взлом" не принимаются.', clarifications: [] },
+                    { code: '1.3', title: 'Права Администрации', desc: 'Администрация выбирает меру наказания и действует по правилу здравого смысла.', clarifications: [] },
+                    { code: '1.4', title: 'Взаимодействие', desc: 'Запрещен обман персонала, выдача себя за админа и помеха работе.', clarifications: [] }
+                ]
+            },
+            {
+                id: 'gameplay',
+                title: '2. Игровой процесс',
+                icon: '🏗️',
+                intro: 'Правила поведения в мире. Мы ценим творчество и честную игру. Гриферство и воровство строго пресекаются.',
+                rules: [
+                    {
+                        code: '2.1',
+                        title: 'Гриферство',
+                        desc: 'Запрещено изменение чужой территории без согласия.',
+                        clarifications: ['Запрещены столбы, ямы, залив водой/лавой.', 'Пранки должны быть обратимы.', 'Запрещена оскорбительная символика.']
+                    },
+                    {
+                        code: '2.2',
+                        title: 'Собственность и Кража',
+                        desc: 'Ресурсы принадлежат тому, кто их добыл.',
+                        clarifications: ['Нельзя брать вещи из чужих сундуков.', 'Вещи после смерти нужно возвращать владельцу.', 'Запрещено воровство с чужих ферм.']
+                    },
+                    {
+                        code: '2.3',
+                        title: 'PvP',
+                        desc: 'PvP только по обоюдному согласию.',
+                        clarifications: ['Запрещены портальные ловушки.', 'Запрещено косвенное убийство (лава, песок).', 'Запрещен спавн-килл.']
+                    },
+                    {
+                        code: '2.5',
+                        title: 'Территория',
+                        desc: 'Уважайте личное пространство соседей.',
+                        clarifications: ['Минимальная дистанция — 300 блоков.', 'Нельзя застраивать выходы соседям.']
+                    }
+                ]
+            },
+            {
+                id: 'cheats',
+                title: '3. Читы и ПО',
+                icon: '🚫',
+                intro: 'Мы за честную игру. Использование стороннего ПО для получения преимущества карается максимально строго.',
+                rules: [
+                    { code: '3.1', title: 'Читы', desc: 'Любые моды на преимущество запрещены.', clarifications: ['X-Ray, KillAura, Fly, SpeedHack.', 'Авто-строительство (Printer).'] },
+                    { code: '3.2', title: 'Багоюз', desc: 'Запрещено использование ошибок игры (дюпы, проходы сквозь стены).', clarifications: [] },
+                    { code: '3.3', title: 'Лаг-машины', desc: 'Запрещены постройки, намеренно нагружающие сервер.', clarifications: [] }
+                ]
+            },
+            {
+                id: 'chat',
+                title: '4. Общение',
+                icon: '💬',
+                intro: 'Будьте вежливы. Чат — общественное место.',
+                rules: [
+                    { code: '4.1', title: 'Культура', desc: 'Запрещены оскорбления, травля и разжигание розни.', clarifications: [] },
+                    { code: '4.2', title: 'Спам', desc: 'Запрещен флуд (3+ сообщения) и злоупотребление капсом.', clarifications: [] },
+                    { code: '4.3', title: 'Реклама', desc: 'Запрещена реклама сторонних серверов и RMT.', clarifications: [] },
+                    { code: '4.4', title: 'Деанон', desc: 'Слив личных данных игроков карается баном.', clarifications: [] }
+                ]
+            },
+            {
+                id: 'punishment',
+                title: '5. Наказания',
+                icon: '🚔',
+                intro: 'Информация о правосудии. Тюрьма (Jail) используется как альтернатива полному бану.',
+                rules: [
+                    { code: '5.2', title: 'Тюрьма (Jail)', desc: 'За нарушения средней тяжести.', clarifications: ['Срок определяется админом.', 'AFK в тюрьме может не засчитываться.', 'Побег из тюрьмы = Вечный бан.'] }
+                ]
+            }
+        ];
+
+        let currentCategory = 'gameplay';
+
+        function init() {
+            renderNav();
+            renderRules(currentCategory);
+            setupEventListeners();
+        }
+
+        function renderNav() {
+            const nav = document.getElementById('categoryNav');
+            nav.innerHTML = categories.map(cat => `
+                <button onclick="switchCategory('${cat.id}')"
+                    class="px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 border flex items-center gap-2
+                    ${currentCategory === cat.id ? 'bg-amber-600 text-white border-amber-600 shadow-md' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'}">
+                    <span>${cat.icon}</span> ${cat.title.split('. ')[1]}
+                </button>
+            `).join('');
+        }
+
+        function renderRules(catId, filter = '') {
+            const cat = categories.find(c => c.id === catId);
+            const container = document.getElementById('rulesContainer');
+            
+            const filtered = cat.rules.filter(r => 
+                r.title.toLowerCase().includes(filter.toLowerCase()) || 
+                r.desc.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            let html = `
+                <div class="p-8 md:p-12 fade-in">
+                    <div class="mb-8 border-b border-stone-100 pb-6">
+                        <h3 class="text-3xl font-bold text-stone-900 flex items-center gap-3">
+                            <span class="text-4xl">${cat.icon}</span> ${cat.title}
+                        </h3>
+                        <p class="text-stone-500 mt-2 max-w-2xl">${cat.intro}</p>
+                    </div>
+                    <div class="grid gap-4">
+                        ${filtered.map(r => `
+                            <div class="border border-stone-200 rounded-2xl overflow-hidden hover:border-amber-200 transition-colors">
+                                <div class="p-5 flex justify-between items-center cursor-pointer bg-stone-50/50" onclick="toggle('${r.code}')">
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-xs font-bold bg-stone-200 px-2 py-1 rounded text-stone-600">${r.code}</span>
+                                        <span class="font-bold text-stone-800">${r.title}</span>
+                                    </div>
+                                    <span id="arr-${r.code}" class="text-stone-400 transition-transform">▼</span>
+                                </div>
+                                <div id="det-${r.code}" class="hidden p-5 bg-white border-t border-stone-100 space-y-3">
+                                    <p class="text-stone-700 font-medium">${r.desc}</p>
+                                    ${r.clarifications.length ? `
+                                        <ul class="space-y-1 text-sm text-stone-500">
+                                            ${r.clarifications.map(c => `<li class="flex gap-2"><span>•</span> ${c}</li>`).join('')}
+                                        </ul>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        window.switchCategory = (id) => {
+            currentCategory = id;
+            renderNav();
+            renderRules(id);
+        };
+
+        window.toggle = (code) => {
+            const det = document.getElementById(`det-${code}`);
+            const arr = document.getElementById(`arr-${code}`);
+            det.classList.toggle('hidden');
+            arr.classList.toggle('rotate-180');
+        };
+
+        function setupEventListeners() {
+            document.getElementById('globalSearch').addEventListener('input', (e) => {
+                renderRules(currentCategory, e.target.value);
+            });
+
+            document.getElementById('violationSelect').addEventListener('change', (e) => {
+                const res = document.getElementById('resultBox');
+                const val = e.target.value;
+                if(val === 'none') return res.classList.add('hidden');
+                
+                const map = {
+                    grief: { t: 'Тюрьма или Бан', d: 'Срок зависит от ущерба.', s: 70, c: 'bg-orange-500' },
+                    theft: { t: 'Тюрьма + Возврат', d: 'Изъятие всех украденных ресурсов.', s: 50, c: 'bg-amber-500' },
+                    cheats: { t: 'Перманентный Бан', d: 'По IP и Hardware без права амнистии.', s: 100, c: 'bg-red-600' },
+                    pvp: { t: 'Тюрьма / Кик', d: 'Убийство без согласия.', s: 40, c: 'bg-yellow-500' },
+                    spam: { t: 'Мут', d: 'Блокировка чата от 30 мин.', s: 20, c: 'bg-blue-500' },
+                    ads: { t: 'Вечный Бан', d: 'Реклама сторонних ресурсов.', s: 95, c: 'bg-red-500' }
+                };
+
+                const data = map[val];
+                document.getElementById('punishmentType').innerText = data.t;
+                document.getElementById('punishmentDesc').innerText = data.d;
+                const bar = document.getElementById('severityBar');
+                bar.style.width = data.s + '%';
+                bar.className = `h-2 rounded-full transition-all duration-500 ${data.c}`;
+                res.classList.remove('hidden');
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
